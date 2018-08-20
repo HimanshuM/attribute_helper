@@ -42,7 +42,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 						$this->$type[$arg[0]] = $arg[1];
 					}
 					else {
-						$this->$type[$arg[1]] = $arg[0];
+						$this->$type[$arg[0]] = $arg[1];
 					}
 
 				}
@@ -143,6 +143,10 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 
 		function inaccessible() {
 			$this->_inaccessible = array_merge($this->_inaccessible, func_get_args());
+		}
+
+		function __isset($name) {
+			return ($this->_strictMode && (isset($this->_readonly[$name]) || isset($this->_accesssible[$name]))) || (!$this->_strictMode && property_exists($this, $name));
 		}
 
 		function methodsAsProperties() {
