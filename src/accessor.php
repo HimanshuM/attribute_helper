@@ -136,6 +136,9 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 			else if (property_exists($this, $attr)) {
 				return $this->$attr;
 			}
+			else if (method_exists($this, $attr)) {
+				return $this->$attr();
+			}
 
 			return $this->$attr();
 
@@ -190,25 +193,25 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 			}
 
 			if (isset($this->_accesssible[$attr])) {
-				$this->_setProperty($this->_accesssible[$attr], $value);
+				return $this->_setProperty($this->_accesssible[$attr], $value);
 			}
 			else if (is_array($this->_methodsAsProperties) && (empty($this->_methodsAsProperties) || in_array($attr, $this->_methodsAsProperties))) {
 
 				if (method_exists($this, $attr)) {
-					$this->$attr($value);
+					return $this->$attr($value);
 				}
 
 			}
 			else if (!$this->_strictMode) {
 
 				if (property_exists($this, $attr)) {
-					$this->$attr = $value;
+					return $this->$attr = $value;
 				}
 				else if ($this->_underscorePrepended) {
 
 					$attr = "_".$attr;
 					if (property_exists($this, $attr)) {
-						$this->$attr = $value;
+						return $this->$attr = $value;
 					}
 
 				}
