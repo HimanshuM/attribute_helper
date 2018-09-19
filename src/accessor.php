@@ -120,6 +120,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 				if (isset($this->_storage[$attr])) {
 					return $this->_storage[$attr];
 				}
+
 				return null;
 
 			}
@@ -149,7 +150,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 		}
 
 		function __isset($name) {
-			return ($this->_strictMode && (isset($this->_readonly[$name]) || isset($this->_accesssible[$name]))) || (!$this->_strictMode && property_exists($this, $name));
+			return ($this->_strictMode && (isset($this->_readonly[$name]) || isset($this->_accesssible[$name]))) || (!$this->_strictMode && property_exists($this, $name)) || isset($this->_storage[$name]);
 		}
 
 		function methodsAsProperties() {
