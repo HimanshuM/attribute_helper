@@ -13,6 +13,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 		private $_readonly = [];
 		private $_accesssible = [];
 		private $_inaccessible = [];
+		private $_issetOverride = false;
 		private $_methodsAsProperties = null;
 		private $_notFoundResponse = [ACCESSOR_NOT_FOUND_EXCEPTION, null];
 		private $_underscorePrepended = false;
@@ -20,7 +21,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 
 		protected $_storage = [];
 
-		function accessible() {
+		protected function accessible() {
 			$this->_buildProperty(func_get_args(), "_accesssible");
 		}
 
@@ -62,7 +63,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 
 		}
 
-		function disableStrictAccessibility($enable = false) {
+		protected function disableStrictAccessibility($enable = false) {
 			$this->_strictMode = $enable;
 		}
 
@@ -145,15 +146,39 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 
 		}
 
-		function inaccessible() {
+		protected function inaccessible() {
 			$this->_inaccessible = array_merge($this->_inaccessible, func_get_args());
 		}
 
 		function __isset($name) {
-			return ($this->_strictMode && (isset($this->_readonly[$name]) || isset($this->_accesssible[$name]))) || (!$this->_strictMode && property_exists($this, $name)) || isset($this->_storage[$name]);
+
+			if (!empty($this->_issetOverride)) {
+
+				if (is_a($this->_issetOverride, "Closure")) {
+					return ($this->_issetOverride->bindTo($this))();
+				}
+
+				$override = $this->_issetOverride;
+
+				return $this->$override($name);
+
+			}
+
+			return ($this->_strictMode && (isset($this->_readonly[$name]) || isset($this->_accesssible[$name]))) || (!$this->_strictMode && property_exists($this, (($this->_underscorePrepended ? "_" : "").$name))) || isset($this->_storage[$name]);
+
 		}
 
-		function methodsAsProperties() {
+		protected function issetOverride($override) {
+
+			if (!is_a($override, "Closure") && !is_callable([$this, $override])) {
+				throw new InvalidArgumentTypeException("Accessor::issetOverride", 1, ["Closure", "method"]);
+			}
+
+			$this->_issetOverride = $override;
+
+		}
+
+		protected function methodsAsProperties() {
 
 			$methods = func_get_args();
 			if (empty($methods) || $methods[0] != null) {
@@ -169,7 +194,7 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 
 		}
 
-		function notFoundResponse($flag = ACCESSOR_NOT_FOUND_EXCEPTION, $callback = null) {
+		protected function notFoundResponse($flag = ACCESSOR_NOT_FOUND_EXCEPTION, $callback = null) {
 
 			if ($flag < 1 || $flag > 3) {
 				throw new Exception("Invalid flag for AttributeHelper\\Accessor::notFoundResponse().", 1);
@@ -179,11 +204,11 @@ define ("ACCESSOR_NOT_FOUND_ALLOW", 3);
 
 		}
 
-		function prependUnderscore() {
+		protected function prependUnderscore() {
 			$this->_underscorePrepended = true;
 		}
 
-		function readonly() {
+		protected function readonly() {
 			$this->_buildProperty(func_get_args(), "_readonly");
 		}
 
